@@ -1,5 +1,11 @@
 #pragma once
+#include <iostream>
 
+template<typename value_type>
+class ILinkedList;
+
+template<typename value_type>
+std::ostream& operator<<(std::ostream& output, const ILinkedList<value_type>& list);
 
 template<typename value_type>
 class ILinkedList
@@ -8,17 +14,16 @@ public:
 	struct LNode
     {
         value_type value;
-        LNode* prev;				
         LNode* next;
-        LNode(value_type v, LNode* p, LNode* n) : value(v), prev(p), next(n) {};
+        LNode(value_type v, LNode* p, LNode* n) : value(v), next(n) {};
     };
-    LNode* head;
-    LNode* tail;
-
-	ILinkedList(): head( NULL ), tail ( NULL ),size(0) {}
+  
+	LNode* head;
+	LNode* tail;
+	ILinkedList(): head( NULL ), tail( NULL ), size(0) {}
 
 	template <int N>
-	ILinkedList(value_type (&arr)[N]):head( NULL ),tail ( NULL ),size(N)
+	ILinkedList(value_type (&arr)[N]):head( NULL ), tail( NULL ), size(N)
 	{
 		for( int i(0); i != N; ++i)
 			push_back(arr[i]);
@@ -32,18 +37,16 @@ public:
 	void push_back(value_type value);
 	int find(value_type value);
 	value_type get(int i);
-	value_type getLast(int i);
-	void sort();
-	bool validata();
+	value_type get_pre(int i);
+	//void sort();
+	//bool validate();
+	value_type* to_array();
 
-	value_type* toArray();
-
-	friend ostream& operator<< <>(ostream& output, const ILinkedList<value_type>& list);
-
+	friend std::ostream& operator<< <value_type>(std::ostream& output, const ILinkedList<value_type>& list);
 };
 
-template <typename value_type>
-bool ILinkedList<value_type>::validata(){
+/**template <typename value_type>
+bool ILinkedList<value_type>::validate(){
 	LNode* cur = head;
 	bool isCorrect = true;
 	while(cur != tail){
@@ -55,9 +58,9 @@ bool ILinkedList<value_type>::validata(){
 	}
 
 	return isCorrect;
-}
+}*/
 
-template <typename value_type>
+/**template <typename value_type>
 void ILinkedList<value_type>::sort(){
 	// insert sort
 	LNode* cur = head;
@@ -75,65 +78,67 @@ void ILinkedList<value_type>::sort(){
 			itr = itr->prev;
 		}
 	}
-}
+}*/
 
-//template <typename value_type>
-//void ILinkedList<value_type>::reverse(){
-//	LNode* cur_node = NULL;
-//	LNode* temp = NULL;
-//	while(head){
-//		temp = head->next; 
-//		head->next = cur_node;
-//		cur_node = head;
-//		head = temp;
-//	}
-//
-//	head = cur_node;
-//}
+template <typename value_type>
+void ILinkedList<value_type>::reverse(){
+	LNode* cur_node = NULL;
+	LNode* temp = NULL;
+	tail = head;
+	
+	while(head){
+		temp = head->next; 
+		head->next = cur_node;
+		cur_node = head;
+		head = temp;
+	}
+
+	head = cur_node;
+}
 
 template <typename value_type>
 void ILinkedList<value_type>::remove(value_type value){
-	LNode* cur_node = this->head;
-
+	LNode* cur_node = head;
+  LNode* pre_node = NULL;
+	
 	while(cur_node != NULL)
 	{
 		if(cur_node->value == value)
 		{
-			if (cur_node->prev != NULL)
-				cur_node->prev->next = cur_node->next;
-			else
-				this->head = cur_node->next;
+			if (pre_node != NULL)
+				pre_node->next = cur_node->next;
+			else//head node
+				head = cur_node->next;
 			
-			if (cur_node->next != NULL)
-				cur_node->next->prev = cur_node->prev;
-			else
-				this->tail = cur_node->prev;
+			if (cur_node->next == NULL)//tail node
+				tail = pre_node;
 
 			delete cur_node;
 			size--;
 			return;
 		}
-		else
-			cur_node = cur_node->next;
+		
+		pre_node = cur_node;
+		cur_node = cur_node->next;
 	}
 }
 
 template <typename value_type>
 void ILinkedList<value_type>::push_back(value_type data)
 {
-    tail = new LNode(data, tail, NULL);
-    if( tail->prev )
-        tail->prev->next = tail;
+	LNode* orig_tail = tail;
+  tail = new LNode(data, tail, NULL);
+  if( orig_tail)
+  	orig_tail->next = tail;
 	else
-        head = tail;
+    head = tail;
 
 	size++;
 }
 
-
 template <typename value_type>
 int ILinkedList<value_type>::find(value_type data){
-	LNode* cur_node = this->head;
+	LNode* cur_node = head;
 	int ind = -1;
 	while (cur_node != NULL ){
 		ind ++;
@@ -160,7 +165,7 @@ value_type ILinkedList<value_type>::get(int i)
 }
 
 template <typename value_type>
-value_type ILinkedList<value_type>::getLast(int i){
+value_type ILinkedList<value_type>::get_pre(int i){
 	LNode* p1 = this->head;
 	LNode* p2 = this->head;
 	int ind = 0;
@@ -178,10 +183,10 @@ value_type ILinkedList<value_type>::getLast(int i){
 }
 
 template <typename value_type>
-value_type* ILinkedList<value_type>::toArray(){
+value_type* ILinkedList<value_type>::to_array(){
 	value_type* cur = this->head;
 	value_type* arr = new value_type[size];
-	count = 0;
+	int count = 0;
 	while(cur != NULL){
 		arr[count] = cur->value;
 		count++;
@@ -192,13 +197,13 @@ value_type* ILinkedList<value_type>::toArray(){
 }
 
 template <typename value_type>
-ostream& operator<<<>(ostream& output, const ILinkedList<value_type>& list){
-	ILinkedList<value_type>::LNode* p = list.head;
+std::ostream& operator<<(std::ostream& output, const ILinkedList<value_type>& list){
+	typename ILinkedList<value_type>::LNode p = list.head;
 
 	while(p){
 		output<<p->value<<" ";
 		p = p->next;
 	}
-	output<<endl;
+	output<<std::endl;
 	return output;
 }

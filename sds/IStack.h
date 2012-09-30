@@ -1,20 +1,25 @@
 #pragma once
+#include <iostream>
+ 
+template <typename value_type>
+class IStack;
 
-using namespace std;
+template <typename value_type>
+std::ostream& operator<<(std::ostream& output, const IStack<value_type>& stack);
 
-template <typename T>
+template <typename value_type>
 class IStack
 {
 private:
-	int len;
-	int capacity;
-	T* data;
-
+	size_t len;
+	size_t capacity;
+	value_type* data;
+	void resize(size_t new_capacity);
 public:
 	IStack(void):len(-1),capacity(100),data(NULL){}
 
 	template <int N>
-	IStack(T (&arr)[N]):len(-1),capacity(2*N),data(NULL)
+	IStack(value_type (&arr)[N]):len(-1),capacity(2*N),data(NULL)
 	{
 		for( int i =0; i != N; ++i)
 			push(arr[i]);
@@ -22,17 +27,28 @@ public:
 
 	~IStack(void){}
 
-	void push(T value);
-	T* pop();
-	T* peek();
+	void push(value_type value);
+	value_type* pop();
+	value_type* peek();
 	bool empty();
-	int find(T value);
+	int find(value_type value);
 
-	friend ostream& operator<<<>(ostream& output, const IStack<T>& stack);
+	friend std::ostream& operator<< <value_type>(std::ostream& output, const IStack<value_type>& stack);
 };
 
-template <typename T>
-int IStack<T>::find(T value)
+template <typename value_type>
+void IStack<value_type>::resize(size_t new_capacity){
+	capacity = new_capacity;
+	value_type* temp = new value_type[capacity];
+	for(int i = 0; i < len; i++)
+		temp[i] = data[i];
+	
+	swap(temp, data);
+	delete[] temp;
+}
+
+template <typename value_type>
+int IStack<value_type>::find(value_type value)
 {
 	for(int i = 0; i < len; i++)
 		if(data[i] == value)
@@ -41,27 +57,21 @@ int IStack<T>::find(T value)
 	return -1;
 }
 
-template <typename T>
-void IStack<T>::push(T value)
+template <typename value_type>
+void IStack<value_type>::push(value_type value)
 {
-	if (this->data == NULL)
-		data = new T[this->capacity];
+	if (data == NULL)
+		data = new value_type[capacity];
 
-	if (this->len == capacity){
-		capacity = 2 * capacity;
-		T* temp = new T[capacity];
-		for(int i = 0; i < len; i++)
-			temp[i] = data[i];
-		swap(temp, data);
-		
-		delete[] temp;
+	if (len == capacity){
+		rezie(2 * capacity);			
 	}
 	
-	data[++this->len] = value;
+	data[++len] = value;
 }
 
-template <typename T>
-T* IStack<T>::pop(void)
+template <typename value_type>
+value_type* IStack<value_type>::pop(void)
 {
 	if(len>=0){
 		len--;
@@ -70,8 +80,8 @@ T* IStack<T>::pop(void)
 	return NULL;
 }
 
-template <typename T>
-T* IStack<T>::peek(void)
+template <typename value_type>
+value_type* IStack<value_type>::peek(void)
 {
 	if(len>=0){
 		return &data[len];
@@ -79,14 +89,14 @@ T* IStack<T>::peek(void)
 	return NULL;
 }
 
-template <typename T>
-bool IStack<T>::empty()
+template <typename value_type>
+bool IStack<value_type>::empty()
 {
 	return len < 0;
 }
 
-template <typename T>
-ostream& operator<<<>(ostream& output, const IStack<T>& stack){
+template <typename value_type>
+std::ostream& operator<< (std::ostream& output, const IStack<value_type>& stack){
 	for (int i = 0; i <= stack.len; i++)
 		output<<stack.data[i]<<' ';
 

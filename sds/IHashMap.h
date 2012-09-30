@@ -53,8 +53,6 @@ size_t IHashMap<key_type, value_type>::hash(key_type e){
 	return hashfunc(e);
 }
 
-
-
 template <typename key_type, typename value_type>
 void IHashMap<key_type, value_type>::put(key_type k, value_type v){
 	if(size > MAX_LEN/2){
