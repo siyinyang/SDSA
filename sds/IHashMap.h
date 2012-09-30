@@ -1,5 +1,6 @@
 #pragma once
-using namespace std;
+#include <iostream>
+#include <tr1/functional>
 
 template <typename key_type, typename value_type>
 class IHashMap
@@ -15,20 +16,20 @@ class IHashMap
 
 	void resize(int new_max_len);
 public:
-	IHashMap(void):MAX_LEN(5),size(0){
+	IHashMap(void):MAX_LEN(100),size(0){
 		elements = new _Map_Node*[MAX_LEN];
 	}
 	~IHashMap(void){}
 
-	int hash(key_type k);
-	void insert(key_type k, value_type v);
+	size_t hash(key_type k);
+	void put(key_type k, value_type v);
 };
 
 template <typename key_type, typename value_type>
 void IHashMap<key_type, value_type>::resize(int NEW_MAX_LEN){
 	_Map_Node** new_map = new _Map_Node*[NEW_MAX_LEN];
 
-	int new_hash_code = 0;
+	size_t new_hash_code = 0;
 	for(int i = 0; i != MAX_LEN; ++i){
 		if(elements[i]){
 			new_hash_code = hash(elements[i]->key) % NEW_MAX_LEN;
@@ -47,21 +48,21 @@ void IHashMap<key_type, value_type>::resize(int NEW_MAX_LEN){
 
 
 template <typename key_type, typename value_type>
-int IHashMap<key_type, value_type>::hash(key_type e){
-	std::hash<key_type> hashfunc;
-	return abs((int)hashfunc(e));
+size_t IHashMap<key_type, value_type>::hash(key_type e){
+	std::tr1::hash<key_type> hashfunc;
+	return hashfunc(e);
 }
 
 
 
 template <typename key_type, typename value_type>
-void IHashMap<key_type, value_type>::insert(key_type k, value_type v){
+void IHashMap<key_type, value_type>::put(key_type k, value_type v){
 	if(size > MAX_LEN/2){
 		MAX_LEN *= 2;
 		resize(MAX_LEN);
 	}
 
-	int hash_code = hash(k) % MAX_LEN;
+	size_t hash_code = hash(k) % MAX_LEN;
 
 	bool hasDuplicate = false;
 	while(elements[hash_code]){

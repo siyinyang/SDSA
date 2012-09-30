@@ -1,8 +1,15 @@
 #pragma once
+#include <iostream>
 
-using namespace std;
+template <typename data_type>
+class IQueue;
 
-template <typename T>
+/**This declaration is to 'trick' the complier to treat the friend function as a template*/
+template <typename data_type>
+std::ostream& operator<< (std::ostream& output, const IQueue<data_type>& IQueue);
+
+
+template <typename data_type>
 class IQueue
 {
 private:
@@ -10,44 +17,40 @@ private:
 	int last;
 	int capacity;
 	int len;
-	T* data;
+	data_type* data;
 public:
 	IQueue(void):len(0),first(0),last(-1),capacity(100),data(NULL){}
 
-	IQueue(T* arr, int len):len(len), first(0),last(-1),capacity(2*len),data(NULL){
+	IQueue(data_type* arr, int len):len(len), first(0),last(-1),capacity(2*len),data(NULL){
 		for( int i =0; i != len; ++i)
 			enqueue(arr[i]);
 	}
 
 	template <int N>
-	IQueue(T (&arr)[N]):len(0),first(0),last(-1),capacity(2*N),data(NULL)
+	IQueue(data_type (&arr)[N]):len(0),first(0),last(-1),capacity(2*N),data(NULL)
 	{
 		for( int i =0; i != N; ++i)
 			enqueue(arr[i]);
 	}
 	
-	
-	
 	~IQueue(void){}
 
-	void enqueue(T elem);
-	T* dequeue();
-	T* peek();
+	void enqueue(data_type elem);
+	data_type* dequeue();
+	data_type* peek();
 	bool empty();
-	friend ostream& operator<<<>(ostream& output, const IQueue<T>& IQueue);
+	friend std::ostream& operator<< <>(std::ostream& output, const IQueue<data_type>& IQueue);
 };
 
 
-
-
-template <typename T>
-void IQueue<T>::enqueue(T value)
+template <typename data_type>
+void IQueue<data_type>::enqueue(data_type value)
 {
 	if (this->data == NULL)
-		data = new T[capacity];
+		data = new data_type[capacity];
 
 	if (len == capacity){
-		T* temp = new T[2*capacity];
+		data_type* temp = new data_type[2*capacity];
 
 		int flag = 0;
 		if(first > last)
@@ -68,8 +71,8 @@ void IQueue<T>::enqueue(T value)
 	len++;
 }
 
-template <typename T>
-T* IQueue<T>::dequeue(void)
+template <typename data_type>
+data_type* IQueue<data_type>::dequeue(void)
 {
 	if(len>0){
 		len--;
@@ -82,8 +85,8 @@ T* IQueue<T>::dequeue(void)
 	return NULL;
 }
 
-template <typename T>
-T* IQueue<T>::peek(void)
+template <typename data_type>
+data_type* IQueue<data_type>::peek(void)
 {
 	if(len>0){
 		return &data[first];
@@ -92,14 +95,14 @@ T* IQueue<T>::peek(void)
 	return NULL;
 }
 
-template <typename T>
-bool IQueue<T>::empty()
+template <typename data_type>
+bool IQueue<data_type>::empty()
 {
 	return len == 0;
 }
 
-template <typename T>
-ostream& operator<<<>(ostream& output, const IQueue<T>& queue){
+template <typename data_type>
+std::ostream& operator<< (std::ostream& output, const IQueue<data_type>& queue){
 	if(queue.len>0){
 		int flag = 0;
 		if(queue.first > queue.last)
@@ -110,4 +113,3 @@ ostream& operator<<<>(ostream& output, const IQueue<T>& queue){
 	}
 	return output;
 }
-
