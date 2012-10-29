@@ -1,8 +1,10 @@
 #pragma once
 
-#include <iostream>
-using namespace std;
+template<typename key_type, typename value_type>  
+class IBST;
 
+template<typename key_type, typename value_type>  
+std::ostream& operator<< (std::ostream& output,  IBST<key_type, value_type>& bstree);
 
 template<typename key_type, typename value_type>  
 class IBST
@@ -21,71 +23,64 @@ public:
 		~TNode(void){}
 	};
 
-
 	TNode* root;
 
 	IBST(void){root = NULL; _size = 0;}
-	IBST(TNode* elems, int nElems);
-	IBST(key_type* infix, key_type* prefix, int nElems);
-	TNode* createFromFix(key_type* infix, int start1, int end1, key_type* prefix);
+	IBST(key_type* keys, value_type* values, int nElems);
+	IBST(key_type* infix, key_type* prefix, int nElems, value_type v);
+	TNode* create_from_fix(key_type* infix, int start1, int end1, key_type* prefix, value_type v);
 	~IBST(void);
 
 	TNode* search(key_type key);
-	bool insert(TNode& node);
-	bool remove(key_type key);
-	void replaceTNodeInParent(TNode* node, TNode* newTNode);
-	bool isBalanced();
-	void setBalanced();
+	void insert(key_type key, value_type value);
+	void remove(key_type key);
 
-	bool isSubTree(IBST tree);
-
-	bool isSymmetric();
-	bool isSymmetric(TNode* node);
-
-	TNode* leftMostChild(TNode* node);
-	TNode* next(TNode* node); // return inorder suc
-
-	int height();
-	int height(TNode* node);
-	int size(){return this->_size;}
-
+	bool is_balanced();
+	void set_balanced();
+	bool is_subtree(IBST tree);
+	bool is_symmetric();
 	TNode* common_ancestor(TNode* n1, TNode* n2);
-	TNode* common_ancestor(TNode* root, TNode* n1, TNode* n2);
+
+	TNode* next(TNode* node); // return inorder successor
+	TNode* pre(TNode* node);
 	
-	ostream& outputTNode(ostream& output, TNode* node);
-	friend ostream& operator<< <>(ostream& output,  IBST<key_type, value_type>& bstree);
+	int height();
+	int size(){return this->_size;}
+	
+	std::ostream& outputTNode(std::ostream& output, TNode* node);
+	friend std::ostream& operator<< <>(std::ostream& output,  IBST<key_type, value_type>& bstree);
 
 private:
 	int _size;
+	bool is_symmetric(TNode* node);
+	TNode* common_ancestor(TNode* root, TNode* n1, TNode* n2);
+	bool is_balanced(TNode* root);
+	void set_balanced(TNode* node);
+	void replace_node(TNode* node, TNode* newTNode);
+	int height(TNode* node);
 };
 
-
-
-
 template <typename key_type, typename value_type>
-IBST<key_type, value_type>::IBST(TNode* elems, int nElems)
+IBST<key_type, value_type>::IBST(key_type* keys, value_type* values, int nElems)
 {
-	if(elems == NULL)
+	if(keys == NULL)
 		return;
-	else
-		root = &elems[0];
 
 	for(int i = 1; i < nElems; i++){
-		this->insert(elems[i]);
+		insert(keys[i], values?values[i]:NULL);
 	}
 };
 
 template <typename key_type, typename value_type>
-IBST<key_type, value_type>::IBST(key_type* infix, key_type* prefix, int nElems){
-	this->root = createFromFix(infix, 0, nElems-1, prefix);
+IBST<key_type, value_type>::IBST(key_type* infix, key_type* prefix, int nElems, value_type v){
+	this->root = create_from_fix(infix, 0, nElems-1, prefix, v);
 };
 
 template <typename key_type, typename value_type>
-typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::createFromFix(key_type* infix, int startIn, int endIn, key_type* prefix){
+typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::create_from_fix(key_type* infix, int startIn, int endIn, key_type* prefix, value_type v){
 	static int preInd = 0;
 	if(startIn - endIn <= 0){
-		TNode* node = new TNode(prefix[preInd++] ,NULL);
-		cout<<"create root" <<node->key<<endl;
+		TNode* node = new TNode(prefix[preInd++] , v);
 
 		int inInd = 0;
 		for(int i = startIn; i <= endIn; i++){
@@ -95,8 +90,8 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::createFr
 			}
 		}
 		
-		node->left = createFromFix(infix, startIn, inInd-1, prefix);
-		node->right = createFromFix(infix, inInd+1, endIn, prefix);
+		node->left = create_from_fix(infix, startIn, inInd-1, prefix, v);
+		node->right = create_from_fix(infix, inInd+1, endIn, prefix, v);
 
 		return node;
 	}
@@ -105,42 +100,44 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::createFr
 	}
 };
 
-
 template <typename key_type, typename value_type>
 IBST<key_type, value_type>::~IBST(void)
 {
-
 };
 
 template <typename key_type, typename value_type>
-bool IBST<key_type, value_type>::isSymmetric(void)
+bool IBST<key_type, value_type>::is_symmetric(void)
 {
 	if(root != NULL)
-		return isSymmetric(root);
+		return is_symmetric(root);
 	else
 		return true;
 };
 
 template <typename key_type, typename value_type>
-bool IBST<key_type, value_type>::isSymmetric(TNode* node)
+bool IBST<key_type, value_type>::is_symmetric(TNode* node)
 {
 	if((node->left == NULL) && (node->right == NULL)){
 		return true;
 	}
 	else if(node->left != NULL && node->right != NULL){
-		return isSymmetric(node->left) && isSymmetric(node->right);
+		return is_symmetric(node->left) && is_symmetric(node->right);
 	}else{
 		return false;
 	}
 };
 
 template <typename key_type, typename value_type>
-bool IBST<key_type, value_type>::isBalanced(void)
+bool IBST<key_type, value_type>::is_balanced(TNode* root)
 {
-	if(height(root->left) == height(root->right))
+	if(root == NULL)
 		return true;
-	else
+		
+	if(abs(height(root->left) - height(root->right)) > 1)
 		return false;
+	else{
+		return is_balanced(root->left) && is_balanced(root->right);
+	}
 };
 
 template <typename key_type, typename value_type>
@@ -161,80 +158,75 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::search(k
 };
 
 template <typename key_type, typename value_type>
-void IBST<key_type, value_type>::setBalanced(){
-	if(!isBalanced())
+void IBST<key_type, value_type>::set_balanced(TNode* root){
+	if(!is_balanced(root))
 	{
-
+		
 	}
 }
 
 template <typename key_type, typename value_type>
-bool IBST<key_type, value_type>::insert(TNode& node){
+void IBST<key_type, value_type>::insert(key_type key, value_type value){
 	if(this->root == NULL){
-		this->root = &node;
+		this->root = new TNode(key,value,NULL);
 		_size++;
-		return true;
+		return;
 	}
 	
-	TNode* next = this->root;
-	key_type key = node.key;
-	while(next != NULL){
-		if (key < next->key)
+	TNode* node = root;
+	while(node != NULL){
+		if (key < node->key)
 		{
-			if(next->left == NULL){
-				next->left = &node;
-				node.parent = next;
+			if(node->left == NULL){
+				node->left = new TNode(key,value,node);
 				_size++;
-				setBalanced();
-				return true;
+				//set_balanced();
+				return;
 			}
 			else
-				next = next->left;
+				node = node->left;
 		}
-		else if (key > next->key)
+		else if (key > node->key)
 		{
-			if(next->right == NULL){
-				next->right = &node;
-				node.parent = next;
-				setBalanced();
+			if(node->right == NULL){
+				node->right = new TNode(key,value,node);
+				//set_balanced();
 				_size++;
-				return true;
+				return;
 			}
 			else
-				next = next->right;
+				node = node->right;
 		}
-		else
-			break;
+		else{
+			node->value = value;
+		}
 	}
-
-	return false;
 };
 
 template <typename key_type, typename value_type>
-void IBST<key_type, value_type>::replaceTNodeInParent(TNode* node, TNode* newTNode){
+void IBST<key_type, value_type>::replace_node(TNode* node, TNode* newNode){
 	TNode* parent = node->parent;
 
 	if(parent){
 		if(parent->left == node)
-			parent->left = newTNode;
+			parent->left = newNode;
 		else
-			parent->right = newTNode;
+			parent->right = newNode;
 	}
 	else
-		root = newTNode;
+		root = newNode;
 
-	if(newTNode)
-		newTNode->parent = parent;
+	if(newNode)
+		newNode->parent = parent;
 };
 
 template <typename key_type, typename value_type>
-bool IBST<key_type, value_type>::remove(key_type key){
-	if(this->root == NULL){
-		return false;
-	}
+void IBST<key_type, value_type>::remove(key_type key){
+	if(this->root == NULL)
+		return;
 	
 	TNode* next = this->root;
-	TNode* newTNode = NULL;
+	TNode* newNode = NULL;
 
 	while(next != NULL){
 		if (key < next->key)
@@ -246,38 +238,37 @@ bool IBST<key_type, value_type>::remove(key_type key){
 			next = next->right;
 		}
 		else{// delete node here
-			//TNode* parent = next->parent;
-
 			if((next->left != NULL) && (next->right != NULL)){// delete node with 2 children
-				newTNode = leftMostChild(next->right);
+				//find left most child of right branch
+				newNode = next->right;
+				while(newNode->left)
+					newNode = newNode->left;
 
-				next->key = newTNode->key;
+				next->key = newNode->key;
 				next->value = next->value;
 				
-				replaceTNodeInParent(newTNode, newTNode->right);
+				replace_node(newNode, newNode->right);
 			}
 			else if(next->left || next->right){// delete node with one child
-				newTNode =  (next->left == NULL)?next->right:next->left;
-				replaceTNodeInParent(next, newTNode);
+				newNode =  (next->left == NULL)?next->right:next->left;
+				replace_node(next, newNode);
 			}
 			else{ // delete a leaf
-				replaceTNodeInParent(next, NULL);
+				replace_node(next, NULL);
 			}
-			
 
-			setBalanced();
+			//set_balanced();
 			_size--;
-			return true;
+			delete next;
+			return;
 		}
 
 	}
-
-	return false;
-	
 };
 
+// need to be refactored
 template <typename key_type, typename value_type>
-ostream& IBST<key_type, value_type>::outputTNode(ostream& output, TNode* node){
+std::ostream& IBST<key_type, value_type>::outputTNode(std::ostream& output, TNode* node){
 	if(node != NULL){
 		output<< "(" <<  node->key << ", " << node->value <<")";
 		if (node->left != NULL)
@@ -289,7 +280,7 @@ ostream& IBST<key_type, value_type>::outputTNode(ostream& output, TNode* node){
 }
 
 template <typename key_type, typename value_type>
-ostream& operator<< <>(ostream& output, IBST<key_type, value_type>& bstree){
+std::ostream& operator<< (std::ostream& output, IBST<key_type, value_type>& bstree){
 	return bstree.outputTNode(output, bstree.root);
 }
 
@@ -315,8 +306,12 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::common_a
 
 template <typename key_type, typename value_type>
 typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::common_ancestor(TNode* root, TNode* n1, TNode* n2){
-	if(root ==NULL || root->left == n1 || root->left == n2 || root->right==n1 || root->right == n2){
+	if(root ==NULL){
 		return root;
+	}else if(root == n1){
+		return n1;
+	}else if(root == n2){
+		return n2;
 	}
 	else{
 		TNode* left = common_ancestor(root->left, n1, n2);
@@ -329,33 +324,19 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::common_a
 	}
 };
 
-//template<typename key_type, typename value_type>
-//typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::common_ancestor(TNode* n1, TNode* n2){
-//	TNode* ancestor = root;
-//
-//	while(ancestor){
-//		if(n1->key < ancestor->key && n2->key < ancestor->key)
-//			ancestor = ancestor->left;
-//		else if(n1->key > ancestor->key && n2->key > ancestor->key)
-//			ancestor = ancestor->right;
-//		else{
-//			return ancestor;
-//		}
-//	}
-//
-//	return NULL;
-//};
-
 template <typename key_type, typename value_type>
 typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::next(TNode* node)
 {
-	
-
 	if(node == root || node->right != NULL){
-		return leftMostChild(node->right);
+		TNode* left;
+		while((left = node->left) != NULL){
+			node = left;
+		}
+
+		return node;
 	}
 	else{
-		IBST<key_type, value_type>::TNode* parent;
+		TNode* parent;
 		while((parent = node->parent) != NULL){
 			if(parent-> left == node)
 				return parent;
@@ -366,16 +347,3 @@ typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::next(TNo
 		return NULL;
 	}
 };
-
-
-template <typename key_type, typename value_type>
-typename IBST<key_type, value_type>::TNode* IBST<key_type, value_type>::leftMostChild(TNode* node)
-{
-	IBST<key_type, value_type>::TNode* temp;
-
-	while((temp = node->left) != NULL){
-		node = temp;
-	}
-
-	return node;
-}

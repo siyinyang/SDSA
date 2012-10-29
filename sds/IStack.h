@@ -11,7 +11,7 @@ template <typename value_type>
 class IStack
 {
 private:
-	size_t len;
+	int len;
 	size_t capacity;
 	value_type* data;
 	void resize(size_t new_capacity);
@@ -63,9 +63,8 @@ void IStack<value_type>::push(value_type value)
 	if (data == NULL)
 		data = new value_type[capacity];
 
-	if (len == capacity){
-		rezie(2 * capacity);			
-	}
+	if (len == capacity)
+		resize(2 * capacity);
 	
 	data[++len] = value;
 }
